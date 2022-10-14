@@ -7,16 +7,16 @@
 const ethers = require('ethers')
 // fs allows you to read the abi and binary file
 const fs = require('fs-extra')
+// import .env
+require('dotenv').config()
 
 // main asynchronous function
 async function main() {
+  console.log(process.env.PRIVATE_KEY)
   // Ganache RPC End point: HTTP://127.0.0.1:7545
   const provider = new ethers.providers.JsonRpcProvider('HTTP://127.0.0.1:7545')
   // connect wallet to private key from Ganache
-  const wallet = new ethers.Wallet(
-    '5ecdd2a28d9ea6c9f41b30107db789fc1ab715392b38cf02ebb02a31b4d9a1e1',
-    provider,
-  )
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
   const abi = fs.readFileSync('./SimpleStorage_sol_SimpleStorage.abi', 'utf8') // abi stored as variable
   const binary = fs.readFileSync(
     './simpleStorage_sol_SimpleStorage.bin',
@@ -25,11 +25,11 @@ async function main() {
   const contractFactory = new ethers.ContractFactory(abi, binary, wallet) // connect abi so the code knows how to interact with contract, binary because it's the main compiled code, wallet so that we have a private key to use to sign when deploying the contract
   console.log('Deploying, please wait...')
   const contract = await contractFactory.deploy() // Deploy the contract. STOP! Wait for contract to deploy. This resolves the Promise.
-  const transactionReceipt = await contract.deployTransaction.wait(1) // wait 1 block for confirmation and store transaction receipt in variable transactionReceipt
-  console.log('Here is the deployment transaction (transaction response): ') // deployment transaction / transaction response is what you get when you create your transaction initially
-  console.log(contract.deployTransaction) //
-  console.log('Here is the transaction receipt: ')
-  console.log(transactionReceipt) // print transactionReceipt
+  await contract.deployTransaction.wait(1) // wait 1 block for confirmation and store transaction receipt in variable transactionReceipt
+  // console.log('Here is the deployment transaction (transaction response): ') // deployment transaction / transaction response is what you get when you create your transaction initially
+  // console.log(contract.deployTransaction)
+  // console.log('Here is the transaction receipt: ')
+  // console.log(transactionReceipt) // print transactionReceipt
 
   /*   console.log("Let's deploy with only transaction data")
   const nonce = await wallet.getTransactionCount()
@@ -50,7 +50,11 @@ async function main() {
   */
 
   const currentFavoriteNumber = await contract.retrieve()
-  console.log(currentFavoriteNumber)
+  console.log(`Current Favorite Number: ${currentFavoriteNumber.toString()}`)
+  const transactionResponse = await contract.store('7')
+  const transactionReceipt = await transactionResponse.wait(1)
+  const updatedFavoriteNumber = await contract.retrieve()
+  console.log(`Updated favorite number is : ${updatedFavoriteNumber}`)
 }
 
 main()
