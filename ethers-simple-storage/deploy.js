@@ -12,6 +12,7 @@ const fs = require('fs-extra')
 async function main() {
   // Ganache RPC End point: HTTP://127.0.0.1:7545
   const provider = new ethers.providers.JsonRpcProvider('HTTP://127.0.0.1:7545')
+  // connect wallet to private key from Ganache
   const wallet = new ethers.Wallet(
     '5ecdd2a28d9ea6c9f41b30107db789fc1ab715392b38cf02ebb02a31b4d9a1e1',
     provider,
@@ -20,18 +21,17 @@ async function main() {
   const binary = fs.readFileSync(
     './simpleStorage_sol_SimpleStorage.bin',
     'utf8',
-  ) // bin stored as variable
-  const contractFactory = new ethers.ContractFactory(abi, binary, wallet) // abi so the code knows how to interact with contract, binary because it's the main compiled code, wallet so that we have a private key to use to sign when deploying the contract
+  ) // binary stored as variable
+  const contractFactory = new ethers.ContractFactory(abi, binary, wallet) // connect abi so the code knows how to interact with contract, binary because it's the main compiled code, wallet so that we have a private key to use to sign when deploying the contract
   console.log('Deploying, please wait...')
-  const contract = await contractFactory.deploy() // STOP! Wait for contract to deploy. This resolves the Promise.
-  const transactionReceipt = await contract.deployTransaction.wait(1) // transaction receipt is what you get when you wait for a block confirmation
+  const contract = await contractFactory.deploy() // Deploy the contract. STOP! Wait for contract to deploy. This resolves the Promise.
+  const transactionReceipt = await contract.deployTransaction.wait(1) // wait 1 block for confirmation and store transaction receipt in variable transactionReceipt
   console.log('Here is the deployment transaction (transaction response): ') // deployment transaction / transaction response is what you get when you create your transaction initially
-  console.log(contract.deployTransaction)
+  console.log(contract.deployTransaction) //
   console.log('Here is the transaction receipt: ')
-  console.log(transactionReceipt)
-}
+  console.log(transactionReceipt) // print transactionReceipt
 
-/*   console.log("Let's deploy with only transaction data")
+  /*   console.log("Let's deploy with only transaction data")
   const nonce = await wallet.getTransactionCount()
   const tx = {
     nonce: nonce,
@@ -47,11 +47,15 @@ async function main() {
   // wait 1 block confirmation to ensure this transaction goes through
   await sentTxResponse.wait(1)
   console.log(sentTxResponse)
-} */
+  */
+
+  const currentFavoriteNumber = await contract.retrieve()
+  console.log(currentFavoriteNumber)
+}
 
 main()
-  .then(() => ProcessingInstruction.exit(0))
+  .then(() => process.exit(0))
   .catch((error) => {
     console.log(error)
-    ProcessingInstruction.exit(1)
+    process.exit(1)
   })
