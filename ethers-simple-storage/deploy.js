@@ -13,7 +13,7 @@ require('dotenv').config()
 // main asynchronous function
 async function main() {
   // Ganache RPC End point: HTTP://127.0.0.1:7545
-  const provider = new ethers.providers.JsonRpcProvider('process.env.RPC_URL')
+  const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
   // connect wallet to private key from Ganache
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
   const abi = fs.readFileSync('./SimpleStorage_sol_SimpleStorage.abi', 'utf8') // abi stored as variable
