@@ -4,6 +4,7 @@
 // 3. Call main function at the bottom
 
 // import ethers.js
+const { EtherscanProvider } = require('@ethersproject/providers')
 const ethers = require('ethers')
 // fs allows you to read the abi and binary file
 const fs = require('fs-extra')
@@ -15,7 +16,13 @@ async function main() {
   // Ganache RPC End point: HTTP://127.0.0.1:7545
   const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
   // connect wallet to private key from Ganache
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
+  // const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
+  const encryptedJson = fs.readFileSync('./.encryptedKey.json', 'utf8')
+  let wallet = new ethers.Wallet.fromEncryptedJsonSync(
+    encryptedJson,
+    process.env.PRIVATE_KEY_PASSWORD,
+  )
+  wallet = await wallet.connect(provider)
   const abi = fs.readFileSync('./SimpleStorage_sol_SimpleStorage.abi', 'utf8') // abi stored as variable
   const binary = fs.readFileSync(
     './simpleStorage_sol_SimpleStorage.bin',
